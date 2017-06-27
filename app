@@ -9,7 +9,6 @@ require VENDI_CLI_PATH . '/includes/autoload.php';
 use Vendi\CLI;
 use Symfony\Component\Console\Application;
 
-$application = new Application('Cliph', '0.1-dev');
-$application->add( new Vendi\CLI\HelloCommand() );
+$application = new Application('Vendi Admin CLI', '0.1-dev');
 $application->add( new Vendi\CLI\CreateSiteCommand() );
 $application->run();
