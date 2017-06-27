@@ -1,2 +1,2 @@
 #!/bin/bash
-php 'app.php';
+php 'app.php' "$@";
