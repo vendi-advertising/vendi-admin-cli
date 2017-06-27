@@ -77,6 +77,16 @@ class site_info
         $this->_sub_domain = $sub_domain;
     }
 
+    public function with_cms_type_wordpress() : self
+    {
+        return $this->with_cms_type( self::CMS_TYPE_WORDPRESS );
+    }
+
+    public function with_cms_type_drupal() : self
+    {
+        return $this->with_cms_type( self::CMS_TYPE_DRUPAL );
+    }
+
     public function set_cms_type( string $cms_type )
     {
         if( ! in_array( $cms_type, [ self::CMS_TYPE_WORDPRESS, self::CMS_TYPE_DRUPAL ] ) )

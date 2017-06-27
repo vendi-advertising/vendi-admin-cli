@@ -12,5 +12,8 @@ $create_site_command = new Vendi\CLI\CreateSiteCommand();
 
 $application = new Application( 'Vendi Admin CLI', '0.1-dev' );
 $application->add( $create_site_command );
-$application->setDefaultCommand( $create_site_command->getName() );
+$application->add( new Vendi\CLI\Commands\create_file_system_command() );
+$application->add( new Vendi\CLI\Commands\create_database_command() );
+$application->add( new Vendi\CLI\Commands\cms_download_command() );
+$application->add( new Vendi\CLI\Commands\configure_nginx_command() );
 $application->run();

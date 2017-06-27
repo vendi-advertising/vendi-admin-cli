@@ -6,8 +6,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Input\ArrayInput;
 
 class CreateSiteCommand extends Command
 {
@@ -17,7 +16,7 @@ class CreateSiteCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('create-site')
+            ->setName('create-site-wizard')
             ->setDescription('Create a new site')
         ;
     }
@@ -265,176 +264,73 @@ class CreateSiteCommand extends Command
             }
         }
 
-        if( $io->confirm( 'Would you like me to create the above folder structire (if it doesn\'t already exist?', true ) )
+
+        $sub_commands = [
+                'create-file-system' => [
+                            'message'   => 'Would you like me to create the above folder structure (if it doesn\'t already exist)?',
+                            'skip'      => 'Skipping folder creation, this part is up to you!',
+                            'arguments' => [
+                                    'command'               => 'create-file-system',
+                                    'top-level-folder-name' => $this->_site_info->get_top_level_folder_name(),
+                                    '--stage-type'          => $this->_site_info->get_stage_type(),
+                                    '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
+                                    '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
+                            ],
+                            'default'   => true,
+                        ],
+                'create-database' => [
+                            'message'   => 'Would you like me to create the database?',
+                            'skip'      => 'Skipping database creation, this part is up to you!',
+                            'arguments' => [
+                                    'command'               => 'create-database',
+                                    'database-name'         => $this->_site_info->get_database_name(),
+                                    '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
+                                    '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
+                            ],
+                            'default'   => true,
+                        ],
+                'download-cms' => [
+                            'message'   => 'Would you like me to download the latest CMS?',
+                            'skip'      => 'Skipping CMS download, this part is up to you!',
+                            'arguments' => [
+                                    'command'               => 'download-cms',
+                                    'top-level-folder-name' => $this->_site_info->get_top_level_folder_name(),
+                                    '--stage-type'          => $this->_site_info->get_stage_type(),
+                                    '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
+                                    '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
+                            ],
+                            'default'   => true,
+                        ],
+                'configure-nginx' => [
+                            'message'   => 'Would you like me to configure nginx for you?',
+                            'skip'      => 'Skipping nginx configuration, this part is up to you!',
+                            'arguments' => [
+                                    'command'               => 'configure-nginx',
+                                    'top-level-folder-name' => $this->_site_info->get_top_level_folder_name(),
+                                    'subdomain'             => $this->_site_info->get_sub_domain(),
+                                    '--stage-type'          => $this->_site_info->get_stage_type(),
+                                    '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
+                                    '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
+                            ],
+                            'default'   => true,
+                        ],
+            ];
+
+        foreach( $sub_commands as $name => $parts )
         {
-            foreach( $directories as $dir )
+            if( $io->confirm( $parts[ 'message' ], $parts[ 'default' ] ) )
             {
-                if( is_dir( $dir ) )
-                {
-                    $io->success( sprintf( 'Directory %1$s already exists... skipping', $dir ) );
-                    continue;
-                }
 
-                $result = @mkdir( $dir );
-                if( ! is_dir( $dir ) )
-                {
-                    $io->error( sprintf( 'Unable to create directory %1$s... exiting', $dir ) );
-                    exit;
-                }
-
-                $io->success( sprintf( 'Created directory %1$s', $dir ) );
+                $returnCode = $this
+                                ->getApplication()
+                                ->find( $name )
+                                ->run( new ArrayInput( $parts[ 'arguments' ] ), $output)
+                            ;
             }
-        }
-        else
-        {
-            $io->warning( 'Skipping folder creation, this part is up to you!' );
-        }
-
-        if( $io->confirm( 'Would you like me to create the database?', true ) )
-        {
-            $io->note( 'If you are running this on the Helix server just type anything when prompted for a password.' );
-
-            $command = sprintf(
-                                'VENDI_RESULT=$(echo "CREATE DATABASE IF NOT EXISTS %1$s; GRANT ALL PRIVILEGES ON %1$s.* TO %1$s@localhost IDENTIFIED BY \'%1$s\'; FLUSH PRIVILEGES; SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \'%1$s\';" | mysql -uroot -p); echo $VENDI_RESULT;',
-                                $this->_site_info->get_database_name()
-            );
-
-            $result = @exec( $command );
-
-            if( 'SCHEMA_NAME ' . $this->_site_info->get_database_name() !== $result )
+            else
             {
-                $io->error( 'Unknown problem while trying to create database... exiting.' );
-                exit;
+                $io->warning( $parts[ 'skip' ] );
             }
-
-            $io->success( sprintf( 'Created database %1$s', $this->_site_info->get_database_name() ) );
-
-        }
-        else
-        {
-            $io->warning( 'Skipping database creation, this part is up to you!' );
-        }
-
-        if( $io->confirm( 'Would you like me to download the latest CMS?' ) )
-        {
-            $cms_folder = $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS ? 'wp-site' : 'drupal-site';
-
-            switch( $this->_site_info->get_cms_type() )
-            {
-                case site_info::CMS_TYPE_DRUPAL:
-                    $command = sprintf( 'drush dl drupal --destination=/var/www/%1$s/%2$s/%3$s --drupal-project-rename=tmp --yes',
-                        $this->_site_info->get_top_level_folder_name(),
-                        $this->_site_info->get_stage_type(),
-                        $cms_folder
-                    );
-
-                    $result = exec( $command );
-                    dump( $result );
-
-                    // Identify directories
-                    $source = sprintf(
-                                        '/var/www/%1$s/%2$s/%3$s/tmp/',
-                                        $this->_site_info->get_top_level_folder_name(),
-                                        $this->_site_info->get_stage_type(),
-                                        $cms_folder
-                                );
-
-                    $destination = sprintf(
-                                        '/var/www/%1$s/%2$s/%3$s/',
-                                        $this->_site_info->get_top_level_folder_name(),
-                                        $this->_site_info->get_stage_type(),
-                                        $cms_folder
-                                );
-
-                    // Get array of all source files
-                    $files = scandir( $source);
-
-                    // Cycle through all source files
-                    foreach( $files as $file )
-                    {
-                        if( in_array( $file, array( '.', '..' ) ) )
-                        {
-                            continue;
-                        }
-
-                        // If we copied this successfully, mark it for deletion
-                        if( ! rename( $source . $file, $destination . $file ) )
-                        {
-                            $io->error( sprintf( 'Could not move file %1$s from temporary location.', $file ) );
-                        }
-                    }
-
-                    if( ! rmdir( $source ) )
-                    {
-                        $io->error( 'Could not remove temporary folder... something wrong probably happened.' );
-                        exit;
-                    }
-
-                    break;
-
-                case site_info::CMS_TYPE_WORDPRESS:
-                    $command = sprintf( 'wp core download --path=/var/www/%1$s/%2$s/%3$s --allow-root',
-                        $this->_site_info->get_top_level_folder_name(),
-                        $this->_site_info->get_stage_type(),
-                        $cms_folder
-                    );
-
-                    $result = exec( $command );
-                    dump( $result );
-                    break;
-            }
-
-            $io->success( 'I think that worked, not 100% sure. Maybe check that.' );
-        }
-        else
-        {
-            $io->warning( 'Skipping CMS download, this part is up to you!' );
-        }
-
-        if( $io->confirm( 'Would you like me to create the nginx entries?', true ) )
-        {
-            $config = nginx_template::get_template_basic(
-                                                            $this->_site_info->get_sub_domain(),
-                                                            $this->_site_info->get_top_level_folder_name(),
-                                                            $this->_site_info->get_stage_type(),
-                                                            $this->_site_info->get_cms_type()
-                );
-
-            $conf_file_original = sprintf( '/etc/nginx/sites-available/%1$s.helix.vendiadvertising.com', $this->_site_info->get_top_level_folder_name() );
-            if( false === file_put_contents( $conf_file_original, $config ) )
-            {
-                $io->error( 'Could not create nginx conf file' );
-                exit;
-            }
-
-            $conf_file_link = sprintf( '/etc/nginx/sites-enabled/%1$s.helix.vendiadvertising.com', $this->_site_info->get_top_level_folder_name() );
-            if( ! symlink( $conf_file_original, $conf_file_link ) )
-            {
-                $io->error( 'Could not create nginx symlink' );
-                exit;
-            }
-
-            $io->success( sprintf( 'Created nginx file %1$s', $conf_file_original ) );
-            $io->success( sprintf( 'Created nginx file %1$s', $conf_file_link ) );
-
-            $result = exec( 'nginx -t' );
-
-            if( strpos( $result, '[emerg]' ) )
-            {
-                $io->error( 'Nginx conf error, config failed test.' );
-                $io->error( $result );
-                exit;
-            }
-
-            $io->success( 'Nginx files appear valid... reload service' );
-
-            $result = exec( 'service nginx reload' );
-
-            $io->success( 'Succesfully reload nginx server' );
-        }
-        else
-        {
-            $io->warning( 'Skipping nginx entry creation, this part is up to you!' );
         }
 
         $io->text( 'Well, that\'s about it. This would be a great place for a summary!' );
