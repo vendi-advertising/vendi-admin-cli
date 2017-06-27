@@ -64,6 +64,7 @@ class configure_nginx_command extends _base_with_fs
         $io->success( sprintf( 'Created nginx file %1$s', $conf_file_original ) );
         $io->success( sprintf( 'Created nginx file %1$s', $conf_file_link ) );
 
+        //TODO: I think I need to pass an output buffer, this isn't working
         $result = exec( 'nginx -t' );
 
         if( strpos( $result, '[emerg]' ) )
