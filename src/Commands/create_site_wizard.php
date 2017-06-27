@@ -21,16 +21,6 @@ class create_site_wizard extends Command
         ;
     }
 
-    public function untrailingslashit( $string )
-    {
-        return rtrim( $string, '/\\' );
-    }
-
-    public function trailingslashit( $string )
-    {
-        return $this->untrailingslashit( $string ) . '/';
-    }
-
     public function load_site_name( SymfonyStyle $io )
     {
         $site_type = $io->choice(
