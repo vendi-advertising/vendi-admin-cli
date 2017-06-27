@@ -1,8 +1,5 @@
 <?php
 
-define( 'VENDI_CLI_FILE', __FILE__ );
-define( 'VENDI_CLI_PATH', dirname( __FILE__ ) );
-
 require __DIR__ . '/vendor/autoload.php';
 
 spl_autoload_register(

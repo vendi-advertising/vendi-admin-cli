@@ -1,7 +1,10 @@
 #!/usr/bin/env php
 <?php
 
-require __DIR__ . '/autoload.php';
+define( 'VENDI_CLI_FILE', __FILE__ );
+define( 'VENDI_CLI_PATH', dirname( __FILE__ ) );
+
+require VENDI_CLI_PATH . '/includes/autoload.php';
 
 use Vendi\CLI;
 use Symfony\Component\Console\Application;
