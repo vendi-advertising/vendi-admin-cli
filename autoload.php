@@ -3,13 +3,15 @@
 define( 'VENDI_CLI_FILE', __FILE__ );
 define( 'VENDI_CLI_PATH', dirname( __FILE__ ) );
 
+require __DIR__ . '/vendor/autoload.php';
+
 spl_autoload_register(
                         function ( $class )
                         {
                             //PSR-4 compliant autoloader
                             //See http://www.php-fig.org/psr/psr-4/
                             $prefixes = array(
-                                                'Vendi\\CLI\\' => VENDI_CLI_PATH . '/lib/Vendi/CLI/',
+                                                'Vendi\\CLI\\' => VENDI_CLI_PATH . '/src/',
                                             );
 
                             foreach( $prefixes as $prefix => $base_dir )
@@ -38,6 +40,3 @@ spl_autoload_register(
                             }
                         }
                     );
-
-
-require __DIR__ . '/vendor/autoload.php';
