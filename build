@@ -19,7 +19,7 @@ $phar = new \Phar( APP_FILE, 0, APP_ALIAS );
 $phar->compressFiles( \Phar::GZ );
 $phar->setSignatureAlgorithm( \Phar::SHA256 );
 $files = array();
-$files['app'] = './app';
+$files['app.php'] = './app.php';
 $rd = new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( '.' ) );
 foreach( $rd as $file )
 {
@@ -45,5 +45,5 @@ foreach( $rd as $file )
     }
 }
 $phar->buildFromIterator(new ArrayIterator($files));
-$phar->setStub($phar->createDefaultStub('app'));
+$phar->setStub($phar->createDefaultStub('app.php'));
 $phar = null;
