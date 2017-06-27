@@ -315,6 +315,82 @@ class CreateSiteCommand extends Command
             $io->warning( 'Skipping database creation, this part is up to you!' );
         }
 
+        if( $io->confirm( 'Would you like me to download the latest CMS?' ) )
+        {
+            $cms_folder = $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS ? 'wp-site' : 'drupal-site';
+
+            switch( $this->_site_info->get_cms_type() )
+            {
+                case site_info::CMS_TYPE_DRUPAL:
+                    $command = sprintf( 'drush dl drupal --destination=/var/www/%1$s/%2$s/%3$s --drupal-project-rename=tmp --yes',
+                        $this->_site_info->get_top_level_folder_name(),
+                        $this->_site_info->get_stage_type(),
+                        $cms_folder
+                    );
+
+                    $result = exec( $command );
+                    dump( $result );
+
+                    // Identify directories
+                    $source = sprintf(
+                                        '/var/www/%1$s/%2$s/%3$s/tmp/',
+                                        $this->_site_info->get_top_level_folder_name(),
+                                        $this->_site_info->get_stage_type(),
+                                        $cms_folder
+                                );
+
+                    $destination = sprintf(
+                                        '/var/www/%1$s/%2$s/%3$s/',
+                                        $this->_site_info->get_top_level_folder_name(),
+                                        $this->_site_info->get_stage_type(),
+                                        $cms_folder
+                                );
+
+                    // Get array of all source files
+                    $files = scandir( $source);
+
+                    // Cycle through all source files
+                    foreach( $files as $file )
+                    {
+                        if( in_array( $file, array( '.', '..' ) ) )
+                        {
+                            continue;
+                        }
+
+                        // If we copied this successfully, mark it for deletion
+                        if( ! rename( $source . $file, $destination . $file ) )
+                        {
+                            $io->error( sprintf( 'Could not move file %1$s from temporary location.', $file ) );
+                        }
+                    }
+
+                    if( ! rmdir( $source ) )
+                    {
+                        $io->error( 'Could not remove temporary folder... something wrong probably happened.' );
+                        exit;
+                    }
+
+                    break;
+
+                case site_info::CMS_TYPE_WORDPRESS:
+                    $command = sprintf( 'wp core download --path=/var/www/%1$s/%2$s/%3$s --allow-root',
+                        $this->_site_info->get_top_level_folder_name(),
+                        $this->_site_info->get_stage_type(),
+                        $cms_folder
+                    );
+
+                    $result = exec( $command );
+                    dump( $result );
+                    break;
+            }
+
+            $io->success( 'I think that worked, not 100% sure. Maybe check that.' );
+        }
+        else
+        {
+            $io->warning( 'Skipping CMS download, this part is up to you!' );
+        }
+
         if( $io->confirm( 'Would you like me to create the nginx entries?', true ) )
         {
             $config = nginx_template::get_template_basic(
