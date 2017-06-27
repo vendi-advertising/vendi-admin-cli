@@ -31,19 +31,22 @@ foreach( $rd as $file )
     {
         continue;
     }
-    // if( $file->isDir() )
-    // {
-        // dump( $file->getFilename() );
-    // }
-    // dump( $file->getFilename() );
+
     if ($file->getFilename() != '..' && $file->getFilename() != '.' && $file->getFilename() != __FILE__)
     {
-    //     if ( $file->getPath() != './log'&& $file->getPath() != './script'&& $file->getPath() != '.')
-        // {
-            $files[substr($file->getPath().DIRECTORY_SEPARATOR.$file->getFilename(),2)]=$file->getPath().DIRECTORY_SEPARATOR.$file->getFilename();
-        // }
+        $files[substr($file->getPath().DIRECTORY_SEPARATOR.$file->getFilename(),2)]=$file->getPath().DIRECTORY_SEPARATOR.$file->getFilename();
     }
 }
 $phar->buildFromIterator(new ArrayIterator($files));
-$phar->setStub($phar->createDefaultStub('app.php'));
+$phar->setStub( <<<EOB
+#!/usr/bin/env php
+<?php
+Phar::mapPhar();
+define( 'VENDI_CLI_ROOT_PHAR', 'phar://vendi-admin-cli.phar' );
+include VENDI_CLI_ROOT_PHAR . '/app.php';
+__HALT_COMPILER();
+?>
+EOB
+);
+
 $phar = null;
