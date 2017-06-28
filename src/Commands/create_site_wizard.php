@@ -209,43 +209,7 @@ class create_site_wizard extends Command
             $this->load_domain_stuff( $io );
             $this->load_database_stuff( $io );
 
-            $io->table(
-                        [
-                            'Client Name',
-                            'Site Purpose',
-                            'Site Year',
-                            'CMS Type',
-                            'Stage Type',
-                            'Subdomain',
-                            'Database Name',
-                            'Folder Name',
-                        ],
-                        [
-                            [
-                                $this->_site_info->get_client_name(),
-                                $this->_site_info->get_site_purpose(),
-                                $this->_site_info->get_site_year(),
-                                $this->_site_info->get_cms_type(),
-                                $this->_site_info->get_stage_type(),
-                                $this->_site_info->get_sub_domain(),
-                                $this->_site_info->get_database_name(),
-                                $this->_site_info->get_top_level_folder_name(),
-                            ]
-                        ]
-                );
-
-            $io->text( 'The folder structure for this site will look like:' );
-
-            $base = '/var/www/' . $this->_site_info->get_top_level_folder_name();
-            $cms_folder = $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS ? 'wp-site' : 'drupal-site';
-            $directories = [
-                                $base,
-                                $base . '/' . $this->_site_info->get_stage_type(),
-                                $base . '/' . $this->_site_info->get_stage_type() . '/' . 'logs',
-                                $base . '/' . $this->_site_info->get_stage_type() . '/' . 'nginx',
-                                $base . '/' . $this->_site_info->get_stage_type() . '/' . $cms_folder,
-            ];
-            $io->listing( $directories );
+            $this->_site_info->show_summary( $io );
 
             $wizard_ok = $io->confirm( 'Does everything above look correct?', true );
 

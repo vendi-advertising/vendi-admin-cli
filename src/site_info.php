@@ -2,6 +2,8 @@
 
 namespace Vendi\CLI;
 
+use Symfony\Component\Console\Style\SymfonyStyle;
+
 class site_info
 {
     const CMS_TYPE_WORDPRESS = 'WordPress';
@@ -21,6 +23,49 @@ class site_info
     private $_stage_type;
 
     private $_database_name;
+
+    public function show_summary( SymfonyStyle $io )
+    {
+        $io->table(
+                    [
+                        'Client Name',
+                        'Site Purpose',
+                        'Site Year',
+                        'CMS Type',
+                        'Stage Type',
+                        'Subdomain',
+                        'Database Name',
+                        'Folder Name',
+                    ],
+                    [
+                        [
+                            $this->get_client_name(),
+                            $this->get_site_purpose(),
+                            $this->get_site_year(),
+                            $this->get_cms_type(),
+                            $this->get_stage_type(),
+                            $this->get_sub_domain(),
+                            $this->get_database_name(),
+                            $this->get_top_level_folder_name(),
+                        ]
+                    ]
+            );
+
+        $io->text( 'The folder structure for this site will look like:' );
+
+        //TODO: Site root needs to be handled
+        $base = '/var/www/' . $this->get_top_level_folder_name();
+        $cms_folder = $this->get_cms_type() === self::CMS_TYPE_WORDPRESS ? 'wp-site' : 'drupal-site';
+        $directories = [
+                            $base,
+                            $base . '/' . $this->get_stage_type(),
+                            $base . '/' . $this->get_stage_type() . '/' . 'logs',
+                            $base . '/' . $this->get_stage_type() . '/' . 'nginx',
+                            $base . '/' . $this->get_stage_type() . '/' . $cms_folder,
+        ];
+
+        $io->listing( $directories );
+    }
 
     public function get_client_name() : ?string
     {
