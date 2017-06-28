@@ -16,6 +16,7 @@ $application->add( new Vendi\CLI\Commands\create_file_system_command() );
 $application->add( new Vendi\CLI\Commands\create_database_command() );
 $application->add( new Vendi\CLI\Commands\cms_download_command() );
 $application->add( new Vendi\CLI\Commands\configure_nginx_command() );
+$application->add( new Vendi\CLI\Commands\init_command() );
 
 $application->setDefaultCommand( $create_site_wizard->getName() );
 $application->run();
