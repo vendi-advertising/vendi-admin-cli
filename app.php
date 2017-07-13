@@ -23,6 +23,7 @@ $application->add( new Vendi\CLI\Commands\init_command() );
 $application->add( new Vendi\CLI\Commands\redis_installer() );
 $application->add( new Vendi\CLI\Commands\nginx_installer() );
 $application->add( new Vendi\CLI\Commands\mariadb_installer() );
+$application->add( new Vendi\CLI\Commands\phpredis_installer() );
 
 $application->setDefaultCommand( $create_site_wizard->getName() );
 $application->run();

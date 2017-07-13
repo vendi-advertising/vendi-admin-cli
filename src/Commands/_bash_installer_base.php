@@ -9,6 +9,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+use Vendi\Shared\fs_utils;
+
 class _bash_installer_base extends Command
 {
 
@@ -106,6 +108,11 @@ class _bash_installer_base extends Command
         return true;
     }
 
+    protected function _create_tmp_folder( ) : string
+    {
+        return fs_utils::create_random_temp_dir( 'ADMIN_CLI' );
+    }
+
     protected function _run_command( string $command, string $failure_error_message, bool $quiet = false ) : bool
     {
         return $this->_run_command_with_working_directory( $command, $failure_error_message, null, $quiet );
@@ -159,6 +166,19 @@ class _bash_installer_base extends Command
         $this->_run_command( $command, "An unknown error occurred while attempting to import key server ${key_server} with key ${key}", $quiet );
 
         $io->success( "Successfully importec key server ${key_server} with key ${key}" );
+
+        return true;
+    }
+
+    protected function clone_git_repo( string $local_folder, string $repo, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "git clone ${repo} ${local_folder}";
+
+        $this->_run_command( $command, "An unknown error occurred while attempting to checkout git repo ${repo}", $quiet );
+
+        $io->success( "Successfully checked out git repo ${repo} to folder ${local_folder}" );
 
         return true;
     }
