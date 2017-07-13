@@ -2,9 +2,6 @@
 
 namespace Vendi\CLI\Commands;
 
-use Vendi\CLI\config_info;
-use Vendi\CLI\Configs\raven_config;
-
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,7 +16,7 @@ use Symfony\Component\Config\Definition\Processor;
 
 use Webmozart\PathUtil\Path;
 
-class init_command extends Command
+class config extends Command
 {
 
     private $_config_file_name = 'vendi-admin-cli.yml';
@@ -45,6 +42,7 @@ class init_command extends Command
     protected function execute( InputInterface $input, OutputInterface $output )
     {
         $io = new SymfonyStyle( $input, $output );
+        $io->note( 'Init' );
 
         $is_root = ( 0 === posix_getuid() );
 
@@ -59,42 +57,6 @@ class init_command extends Command
 
         $config_paths = ( new config_info )->get_config_paths();
 
-        $configs = [];
-        foreach( $config_paths as $key => $path )
-        {
-            $configs[ $key ] = [];
-
-            if( is_file( $path ) )
-            {
-                $configs[ $key ] = Yaml::parse(  file_get_contents( $path ) );
-            }
-        }
-
-        $processor = new Processor();
-        $configuration = new raven_config();
-        $processedConfiguration = $processor->processConfiguration(
-            $configuration,
-            $configs
-        );
-
-        $io->section( 'Sentry.IO config' );
-
-        $text = sprintf( 'The Sentry.IO web hook URL is %1$s set, would you like to change it?', array_key_exists( 'web_hook_url', $processor ) ? 'already' : 'no' );
-
-        $result = $io->confirm( $text, array_key_exists( 'web_hook_url', $processor ) );
-
-        // $key = $io->ask( 'What is the key?' );
-
-        // $new_config = [
-        //                 'web_hook_url' => $key,
-        //                 'cheese' => 'sdasdas',
-        //         ];
-
-        // file_put_contents( $config_paths[ config_info::CONFIG_KEY_USER ], Yaml::dump( $new_config ) );
-
-        // dump( $new_config );
-        // dump( $config_paths );
-        dump( $processedConfiguration );
-        // dump( $configuration );
+        dump( $config_paths );
     }
 }

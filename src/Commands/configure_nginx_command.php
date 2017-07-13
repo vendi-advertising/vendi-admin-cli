@@ -19,6 +19,7 @@ class configure_nginx_command extends _base_with_fs
 
         $this
             ->setName( 'configure-nginx' )
+            ->setHidden( true )
             ->setDescription( 'Configure nginx' )
         ;
 

@@ -15,6 +15,7 @@ class cms_download_command extends _base_with_fs
 
         $this
             ->setName( 'download-cms' )
+            ->setHidden( true )
             ->setDescription( 'Download the most recent CMS' )
         ;
     }

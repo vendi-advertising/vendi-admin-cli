@@ -19,6 +19,7 @@ class create_database_command extends _base
 
         $this
             ->setName( 'create-database' )
+            ->setHidden( true )
             ->setDescription( 'Create the database for a site' )
         ;
 

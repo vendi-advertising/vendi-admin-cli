@@ -15,6 +15,7 @@ class create_file_system_command extends _base_with_fs
 
         $this
             ->setName( 'create-file-system' )
+            ->setHidden( true )
             ->setDescription( 'Create the file system for a site' )
         ;
     }
