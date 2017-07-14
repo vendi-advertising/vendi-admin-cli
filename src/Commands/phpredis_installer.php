@@ -2,20 +2,8 @@
 
 namespace Vendi\CLI\Commands;
 
-
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Yaml\Yaml;
-
-use Symfony\Component\Config\Definition\ConfigurationInterface;
-use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\Processor;
-
-use Webmozart\PathUtil\Path;
 
 class phpredis_installer extends _bash_installer_base
 {
