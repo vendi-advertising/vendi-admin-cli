@@ -27,7 +27,7 @@ $application->add( new Vendi\CLI\Commands\phpredis_installer() );
 $application->add( new Vendi\CLI\Commands\php_installer() );
 $application->add( new Vendi\CLI\Commands\libsodium_installer() );
 
-$application->setDefaultCommand( $create_site_wizard->getName() );
+// $application->setDefaultCommand( $create_site_wizard->getName() );
 $application->run();
 
 
