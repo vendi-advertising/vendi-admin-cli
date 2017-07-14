@@ -135,11 +135,15 @@ class _bash_installer_base extends Command
     {
         $io = $this->get_or_create_io();
 
+        $multiple = count( explode( ' ', trim( $name ) ) ) > 1;
+
+        $package_string = $multiple ? 'packages' : 'package';
+
         $command = "apt-get install ${name} --yes";
 
-        $this->_run_command( $command, "An unknown error occurred while attempting to install package $name", $quiet );
+        $this->_run_command( $command, "An unknown error occurred while attempting to install ${package_string} ${name}", $quiet );
 
-        $io->success( "Successfully installed package $name" );
+        $io->success( "Successfully installed ${package_string} ${name}" );
 
         return true;
     }
@@ -152,7 +156,7 @@ class _bash_installer_base extends Command
 
         $this->_run_command( $command, "An unknown error occurred while adding PPA ${name}", $quiet );
 
-        $io->success( "Successfully installed PPA $name" );
+        $io->success( "Successfully installed PPA ${name}" );
 
         return true;
     }
@@ -179,6 +183,32 @@ class _bash_installer_base extends Command
         $this->_run_command( $command, "An unknown error occurred while attempting to checkout git repo ${repo}", $quiet );
 
         $io->success( "Successfully checked out git repo ${repo} to folder ${local_folder}" );
+
+        return true;
+    }
+
+    protected function restart_service( string $name, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "service ${name} restart";
+
+        $this->_run_command( $command, "An unknown error occurred while attempting to restart service ${name}", $quiet );
+
+        $io->success( "Successfully restarted service ${name}" );
+
+        return true;
+    }
+
+    protected function echo_to_file( string $text, string $file, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "echo -e \"${text}\" >> ${file}";
+
+        $this->_run_command( $command, "An unknown error occurred while attempting to echo ${text} to file ${file}", $quiet );
+
+        $io->success( "Successfully echoed ${text} to ${file}" );
 
         return true;
     }
