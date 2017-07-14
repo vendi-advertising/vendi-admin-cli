@@ -2,6 +2,7 @@
 
 define( 'VENDI_CLI_FILE', __FILE__ );
 define( 'VENDI_CLI_PATH', dirname( __FILE__ ) );
+define( 'VENDI_CLI_APP_VERSION', '2.0.2' );
 
 require VENDI_CLI_PATH . '/includes/autoload.php';
 
@@ -20,6 +21,7 @@ $application->add( new Vendi\CLI\Commands\mariadb_installer() );
 $application->add( new Vendi\CLI\Commands\phpredis_installer() );
 $application->add( new Vendi\CLI\Commands\php_installer() );
 $application->add( new Vendi\CLI\Commands\libsodium_installer() );
+$application->add( new Vendi\CLI\Commands\self_update() );
 
 // $application->setDefaultCommand( $create_site_wizard->getName() );
 $application->run();
