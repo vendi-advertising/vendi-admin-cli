@@ -5,10 +5,8 @@ namespace Vendi\CLI\Commands;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class php_installer extends _bash_installer_base
+class php_installer extends _bash_installer_with_php_base
 {
-
-    const PHP_VERSION = '7.1';
 
     protected function configure()
     {

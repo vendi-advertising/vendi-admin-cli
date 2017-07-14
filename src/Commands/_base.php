@@ -22,7 +22,7 @@ class _base extends Command
         $this->_io = $io;
     }
 
-    protected function get_or_create_io( InputInterface $input, OutputInterface $output ) : ?SymfonyStyle
+    protected function get_or_create_io( InputInterface $input, OutputInterface $output ) : SymfonyStyle
     {
         if( ! $this->_io )
         {

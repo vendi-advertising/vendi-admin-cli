@@ -14,16 +14,44 @@ use Vendi\Shared\fs_utils;
 class _bash_installer_base extends Command
 {
 
+    const DEFAULT_TIMEOUT = 100;
+
     private $_io;
+
+    private $_next_command_timeout = 100;
+
+    private $_in_multi_command = false;
+
+    private $_warn_about_long_running_command = false;
 
     public function set_io( SymfonyStyle $io )
     {
         $this->_io = $io;
     }
 
+    protected function test_requirements( bool $quiet = false ) : bool
+    {
+        throw new \Exception( 'Child classes must implement the method test_requirements.' );
+    }
+
     protected function test_install( bool $quiet = false ) : bool
     {
         throw new \Exception( 'Child classes must implement the method test_install.' );
+    }
+
+    final protected function set_next_command_timeout( int $seconds )
+    {
+        if( $seconds > self::DEFAULT_TIMEOUT )
+        {
+            $this->_warn_about_long_running_command = true;
+        }
+
+        $this->_next_command_timeout = $seconds;
+    }
+
+    final protected function reset_next_command_timeout( )
+    {
+        $this->set_next_command_timeout( self::DEFAULT_TIMEOUT );
     }
 
     protected function get_or_create_io( InputInterface $input = null, OutputInterface $output = null ) : SymfonyStyle
@@ -40,9 +68,49 @@ class _bash_installer_base extends Command
         return $this->_io;
     }
 
+    protected function _run_mulitple_commands_with_working_directory( array $commands, string $working_directory = null, bool $quiet = false ) : bool
+    {
+        $this->_in_multi_command = true;
+
+        foreach( $commands as $command )
+        {
+            if( ! $this->_run_command_with_working_directory( $command, "An unknown error occurred while running command ${command}" , $working_directory, $quiet ) )
+            {
+                $this->_in_multi_command = false;
+                $this->reset_next_command_timeout();
+                return false;
+            }
+        }
+
+        $this->_in_multi_command = false;
+        $this->reset_next_command_timeout();
+        return true;
+    }
+
+    /**
+     * [_run_command_with_working_directory description]
+     *
+     * This is the workhorse function. All run commands lead here so be careful
+     * when editing.
+     *
+     * @param  string       $command               [description]
+     * @param  string       $failure_error_message [description]
+     * @param  string|null  $working_directory     [description]
+     * @param  bool|boolean $quiet                 [description]
+     * @return [type]                              [description]
+     */
     protected function _run_command_with_working_directory( string $command, string $failure_error_message, string $working_directory = null, bool $quiet = false ) : bool
     {
         $io = $this->get_or_create_io();
+
+        if( $this->_warn_about_long_running_command )
+        {
+            if( ! $quiet )
+            {
+                $io->note( sprintf( 'The next command has been allowed %1$s seconds to run, please be patient', number_format( $this->_next_command_timeout ) ) );
+            }
+            $this->_warn_about_long_running_command = false;
+        }
 
         $descriptorspec = [
                                0 => [ 'pipe', 'r' ],  // stdin
@@ -55,6 +123,10 @@ class _bash_installer_base extends Command
         {
             if( $quiet )
             {
+                if( ! $this->_in_multi_command )
+                {
+                    $this->reset_next_command_timeout();
+                }
                 return false;
             }
             $io->error( "An unknown error occurred while creating a process for the following command:" );
@@ -63,7 +135,7 @@ class _bash_installer_base extends Command
         }
 
         $exit_code = null;
-        for( $i = 0; $i < 100; $i++ )
+        for( $i = 0; $i < $this->_next_command_timeout; $i++ )
         {
             $status = proc_get_status( $process );
             if( ! $status[ 'running' ] )
@@ -75,6 +147,9 @@ class _bash_installer_base extends Command
             // dump( $status );
             sleep( 1 );
         }
+
+        //TODO: We're not handling dangling processes above, I think we need to
+        //call proc_get_status( $process ) one last time.
 
         $stdout = stream_get_contents( $pipes[ 1 ] );
         fclose( $pipes[ 1 ] );
@@ -88,6 +163,10 @@ class _bash_installer_base extends Command
         {
             if( $quiet )
             {
+                if( ! $this->_in_multi_command )
+                {
+                    $this->reset_next_command_timeout();
+                }
                 return false;
             }
 
@@ -105,6 +184,10 @@ class _bash_installer_base extends Command
             exit;
         }
 
+        if( ! $this->_in_multi_command )
+        {
+            $this->reset_next_command_timeout();
+        }
         return true;
     }
 
@@ -200,11 +283,13 @@ class _bash_installer_base extends Command
         return true;
     }
 
-    protected function echo_to_file( string $text, string $file, bool $quiet = false ) : bool
+    protected function echo_to_file( string $text, string $file, bool $erase_current_file = false, bool $quiet = false ) : bool
     {
         $io = $this->get_or_create_io();
 
-        $command = "echo -e \"${text}\" >> ${file}";
+        $redirection = $erase_current_file ? '>' : '>>';
+
+        $command = "echo -e \"${text}\" ${redirection} ${file}";
 
         $this->_run_command( $command, "An unknown error occurred while attempting to echo ${text} to file ${file}", $quiet );
 
@@ -213,4 +298,81 @@ class _bash_installer_base extends Command
         return true;
     }
 
+    protected function create_symlink( string $source_file, string $dest_file, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "ln -sf ${source_file} ${dest_file}";
+
+        $this->_run_command( $command, "An unknown error occurred while attempting to create symbolic link from ${source_file} to ${dest_file}", $quiet );
+
+        $io->success( "Successfully created symbolic link from ${source_file} to ${dest_file}" );
+
+        return true;
+    }
+
+    protected function remove_directory( string $directory, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "rm -rf ${directory}";
+
+        $this->_run_command( $command, "An unknown error occurred while attempting to remove directory ${directory}", $quiet );
+
+        $io->success( "Successfully removed directory ${directory}" );
+
+        return true;
+    }
+
+    protected function remove_file( string $file, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "rm ${file}";
+
+        $this->_run_command( $command, "An unknown error occurred while attempting to remove file ${file}", $quiet );
+
+        $io->success( "Successfully removed file ${file}" );
+
+        return true;
+    }
+
+    protected function get_remote_url( string $remote_url, string $local_folder, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "wget ${remote_url}";
+
+        $this->_run_command_with_working_directory( $command, "An unknown error occurred while attempting to download remote URL ${remote_url}", $local_folder, $quiet );
+
+        $io->success( "Successfully downloaded remote URL ${remote_url}" );
+
+        return true;
+    }
+
+    protected function untar_file( string $file, string $local_folder, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "tar xzvf ${file}";
+
+        $this->_run_command_with_working_directory( $command, "An unknown error occurred while attempting to untar file ${file}", $local_folder, $quiet );
+
+        $io->success( "Successfully untar'd file ${file}" );
+
+        return true;
+    }
+
+    protected function pecl_install( string $name, bool $quiet = false ) : bool
+    {
+        $io = $this->get_or_create_io();
+
+        $command = "pecl channel-update pecl.php.net && pecl install -f ${name}";
+
+        $this->_run_command_with_working_directory( $command, "An unknown error occurred while attempting to install PECL package ${name}", $quiet );
+
+        $io->success( "Successfully installed PECL package ${name}" );
+
+        return true;
+    }
 }

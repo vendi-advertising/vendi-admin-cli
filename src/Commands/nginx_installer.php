@@ -73,6 +73,7 @@ class nginx_installer extends _bash_installer_base
             $this->add_ppa( 'ppa:nginx/development' );
             $this->update_apt_get();
             $this->install_package( 'nginx' );
+            $this->restart_service( "nginx" );
             $this->test_install();
         }
     }

@@ -5,10 +5,8 @@ namespace Vendi\CLI\Commands;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class phpredis_installer extends _bash_installer_base
+class phpredis_installer extends _bash_installer_with_php_base
 {
-
-    const PHP_VERSION = '7.1';
 
     protected function configure()
     {
@@ -46,7 +44,7 @@ class phpredis_installer extends _bash_installer_base
     {
         $io = $this->get_or_create_io( $input, $output );
 
-        $is_root = ( 0 === posix_getuid() );
+        $is_root = ( 0 === \posix_getuid() );
 
         if( ! $is_root )
         {
@@ -72,16 +70,24 @@ class phpredis_installer extends _bash_installer_base
             $this->install_package( "php${expected_php_version}-dev git" );
             $this->clone_git_repo( $local_folder, 'https://github.com/phpredis/phpredis.git' );
 
-            $this->_run_command_with_working_directory( 'git checkout php7', 'Could not checkout PHP7 branch for PHP Redis', $local_folder );
-            $this->_run_command_with_working_directory( 'phpize', 'Could not run phpize command for PHP Redis', $local_folder );
-            $this->_run_command_with_working_directory( './configure', 'Could not run configure command for PHP Redis', $local_folder );
-            $this->_run_command_with_working_directory( 'make', 'Could not run make command for PHP Redis', $local_folder );
-            $this->_run_command_with_working_directory( 'make install', 'Could not run make command for PHP Redis', $local_folder );
+            $this->_run_mulitple_commands_with_working_directory(
+                                                                    [
+                                                                        'git checkout php7',
+                                                                        'phpize',
+                                                                        './configure',
+                                                                        'make',
+                                                                        'make install',
+                                                                    ],
+                                                                    $local_folder
+                                                                );
 
-            $this->_run_command( "echo \"extension=redis.so\" > /etc/php/${expected_php_version}/mods-available/redis.ini", '' );
-            $this->_run_command( "ln -sf /etc/php/${expected_php_version}/mods-available/redis.ini /etc/php/${expected_php_version}/fpm/conf.d/20-redis.ini", '' );
-            $this->_run_command( "ln -sf /etc/php/${expected_php_version}/mods-available/redis.ini /etc/php/${expected_php_version}/cli/conf.d/20-redis.ini", '' );
-            $this->_run_command( "service php${expected_php_version}-fpm restart", '' );
+            $this->remove_directory( $local_folder );
+
+            $this->echo_to_file( "\n" . 'extension=redis.so' . "\n", "/etc/php/${expected_php_version}/mods-available/redis.ini" );
+
+            $this->create_symlink( "/etc/php/${expected_php_version}/mods-available/redis.ini", "/etc/php/${expected_php_version}/fpm/conf.d/20-redis.ini", true );
+            $this->create_symlink( "/etc/php/${expected_php_version}/mods-available/redis.ini", "/etc/php/${expected_php_version}/cli/conf.d/20-redis.ini", true );
+            $this->restart_service( "php${expected_php_version}-fpm" );
 
             $this->_run_command( "rm -rf ${local_folder}", '' );
 
