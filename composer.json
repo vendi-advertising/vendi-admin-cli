@@ -1,4 +1,7 @@
 {
+    "name": "vendi-advertising/vendi-admin-cli",
+    "description": "Vendi Admin CLI",
+    "license": "MIT",
     "require": {
         "symfony/console": "^3.0",
         "symfony/yaml": "^3.3",
