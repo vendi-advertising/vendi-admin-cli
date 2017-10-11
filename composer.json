@@ -13,6 +13,10 @@
     },
     "require-dev": {
         "symfony/var-dumper": "^3.3",
-        "symfony/finder": "^3.3"
+        "symfony/finder": "^3.3",
+        "sensiolabs/security-checker": "^4.1",
+        "jakub-onderka/php-parallel-lint": "^0.9.2",
+        "jakub-onderka/php-console-highlighter": "^0.3.2",
+        "phpro/grumphp": "^0.12.0"
     }
 }
