@@ -22,16 +22,8 @@ class create_site_wizard extends Command
         ;
     }
 
-    public function load_site_name( SymfonyStyle $io )
+    private function handle_purpose( SymfonyStyle $io )
     {
-        $site_type = $io->choice(
-                                        'What CMS will be used for this site?',
-                                        [ site_info::CMS_TYPE_WORDPRESS, site_info::CMS_TYPE_DRUPAL ]
-                                    );
-        $this->_site_info->set_cms_type( $site_type );
-
-        $this->_site_info->set_client_name( $io->ask( 'What is the client\'s name?' ) );
-
         $purpose = $io->choice(
                                 'What is the purpose of this site?',
                                 [
@@ -39,7 +31,7 @@ class create_site_wizard extends Command
                                     'Blog',
                                     'Landing Page',
                                     'Storefront',
-                                    'Other,'
+                                    'Other',
                                 ]
                             );
 
@@ -49,7 +41,28 @@ class create_site_wizard extends Command
         }
 
         $this->_site_info->set_site_purpose( $purpose );
+    }
 
+    private function handle_domain_base( SymfonyStyle $io )
+    {
+        $domain_base = $io->choice(
+                                'What is the base domain for this site?',
+                                [
+                                    'helix.vendiadvertising.com',
+                                    'local',
+                                    'Other',
+                                ]
+                            );
+        if( 'Other' === $domain_base )
+        {
+            $domain_base = $io->ask( 'Please enter the domain base without the leading period.' );
+        }
+
+        $this->_site_info->set_domain_base( $domain_base );
+    }
+
+    private function handle_year_designation( SymfonyStyle $io )
+    {
         if( $io->confirm( 'Do you need a specific year designation? (Please avoid unless needed.)', false ) )
         {
             $year = $io->ask(
@@ -69,40 +82,57 @@ class create_site_wizard extends Command
 
             $this->_site_info->set_site_year( (int)$year );
         }
+    }
+
+    private function handle_cms_type( SymfonyStyle $io )
+    {
+        $site_type = $io->choice(
+                                        'What CMS will be used for this site?',
+                                        [ site_info::CMS_TYPE_WORDPRESS, site_info::CMS_TYPE_DRUPAL ]
+                                    );
+        $this->_site_info->set_cms_type( $site_type );
+    }
+
+    public function load_site_name( SymfonyStyle $io )
+    {
+
+        $this->handle_cms_type( $io );
+
+        $this->_site_info->set_client_name( $io->ask( 'What is the client\'s name?' ) );
+
+        $this->handle_purpose( $io );
+
+        $this->handle_year_designation( $io );
 
         $this->_site_info->set_stage_type(
                                             $io->ask( 'What stage level should be used?', 'stage' )
             );
     }
 
+    public function handle_sub_domain( SymfonyStyle $io )
+    {
+        $sub_domain = $this->_site_info->generate_subdomain();
+
+        $domain_base = $this->_site_info->get_domain_base();
+
+        if( ! $io->confirm( sprintf( 'Does the domain %1$s.%2$s work for you?', $sub_domain, $domain_base ), true ) )
+        {
+            $sub_domain = $io->ask( 'What subdomain would you like to use?' );
+        }
+
+        if( ! $sub_domain )
+        {
+            throw new \Exception( 'No subdomain set' );
+        }
+
+        $this->_site_info->set_sub_domain( $sub_domain );
+    }
+
     public function load_domain_stuff( SymfonyStyle $io )
     {
-        $folder = $this->_site_info->get_top_level_folder_name();
+        $this->handle_domain_base( $io );
 
-        $domain = str_replace( '-primary-site', '', $folder );
-
-        $parts = explode( '-', $domain );
-        if( count( $parts ) <= 3 )
-        {
-            $guess_okay = $io->confirm( sprintf( 'Does the domain %1$s.helix.vendiadvertising.com work for you?', $domain ), true );
-        }
-        else
-        {
-            $guess_okay = ! $io->confirm( sprintf( 'The domain %1$s.helix.vendiadvertising.com seems kind of long, would you like to change it?', $domain ), true );
-        }
-
-        if( ! $guess_okay )
-        {
-            $domain = $io->ask( 'What subdomain would you like to use?' );
-        }
-
-        if( ! $domain )
-        {
-            throw new \Exception( 'No domain set' );
-        }
-
-        $this->_site_info->set_sub_domain( $domain );
-
+        $this->handle_sub_domain( $io );
     }
 
     public function load_database_stuff( SymfonyStyle $io )
@@ -192,11 +222,11 @@ class create_site_wizard extends Command
             exit;
         }
 
-        if( ! $io->confirm( 'Are you ready to start?', true ) )
-        {
-            $io->success( 'Okay, well I did\'t do anything but I hope you come back!' );
-            exit;
-        }
+        // if( ! $io->confirm( 'Are you ready to start?', true ) )
+        // {
+        //     $io->success( 'Okay, well I did\'t do anything but I hope you come back!' );
+        //     exit;
+        // }
 
         $wizard_ok = false;
 
@@ -263,6 +293,7 @@ class create_site_wizard extends Command
                                     'command'               => 'configure-nginx',
                                     'top-level-folder-name' => $this->_site_info->get_top_level_folder_name(),
                                     'subdomain'             => $this->_site_info->get_sub_domain(),
+                                    'domain-base'           => $this->_site_info->get_domain_base(),
                                     '--stage-type'          => $this->_site_info->get_stage_type(),
                                     '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
                                     '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
@@ -288,6 +319,8 @@ class create_site_wizard extends Command
             }
         }
 
-        $io->text( 'Well, that\'s about it. This would be a great place for a summary!' );
+        $io->text( 'Well, that\'s about it!' );
+
+        $this->_site_info->show_summary( $io );
     }
 }

@@ -4,7 +4,7 @@ namespace Vendi\CLI;
 
 final class nginx_template
 {
-    public static function get_template_basic( $subdomain, $folder, $stage_type, $cms_type ) : string
+    public static function get_template_basic( $subdomain, $folder, $stage_type, $cms_type, $domain_base ) : string
     {
         $extra = '';
         $cms_folder = '';
@@ -26,13 +26,13 @@ final class nginx_template
                         '
 server {
         listen 80;
-        server_name %1$s.helix.vendiadvertising.com;
+        server_name %1$s.%6$s;
         return 301 https://$host$request_uri;
 }
 server {
         listen 443 ssl http2;
 
-        server_name %1$s.helix.vendiadvertising.com;
+        server_name %1$s.%6$s;
         root /var/www/%2$s/%3$s/%4$s;
 
         access_log     /var/www/%2$s/%3$s/logs/access.log vhosts;
@@ -47,7 +47,8 @@ server {
             $folder,
             $stage_type,
             $cms_folder,
-            $extra
+            $extra,
+            $domain_base
         );
     }
 }

@@ -8,5 +8,5 @@ parameters:
             keywords:
                 - 'die('
                 - 'var_dump('
-                - 'exit;'
+                - 'dump('
         composer: ~

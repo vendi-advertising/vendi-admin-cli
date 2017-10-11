@@ -12,6 +12,7 @@ use Vendi\CLI\site_info;
 class configure_nginx_command extends _base_with_fs
 {
     private $subdomain;
+    private $domain_base;
 
     protected function configure()
     {
@@ -24,7 +25,8 @@ class configure_nginx_command extends _base_with_fs
         ;
 
         $this
-            ->addArgument( 'subdomain', InputArgument::REQUIRED, 'The sanitized subdomain.' )
+            ->addArgument( 'subdomain',   InputArgument::REQUIRED, 'The sanitized subdomain.' )
+            ->addArgument( 'domain-base', InputArgument::REQUIRED, 'The domain base.' )
         ;
     }
 
@@ -32,6 +34,7 @@ class configure_nginx_command extends _base_with_fs
     {
         parent::initialize( $input, $output );
         $this->subdomain = $input->getArgument( 'subdomain' );
+        $this->domain_base = $input->getArgument( 'domain-base' );
     }
 
     protected function execute( InputInterface $input, OutputInterface $output )
@@ -45,17 +48,18 @@ class configure_nginx_command extends _base_with_fs
                                                         $this->subdomain,
                                                         $this->_folder_name,
                                                         $this->_stage_type,
-                                                        $cms_type
+                                                        $cms_type,
+                                                        $this->domain_base
             );
 
-        $conf_file_original = sprintf( '/etc/nginx/sites-available/%1$s.helix.vendiadvertising.com', $this->_folder_name );
+        $conf_file_original = sprintf( '/etc/nginx/sites-available/%1$s.%2$s', $this->_folder_name, $this->domain_base );
         if( false === file_put_contents( $conf_file_original, $config ) )
         {
             $io->error( 'Could not create nginx conf file' );
             exit;
         }
 
-        $conf_file_link = sprintf( '/etc/nginx/sites-enabled/%1$s.helix.vendiadvertising.com', $this->_folder_name );
+        $conf_file_link = sprintf( '/etc/nginx/sites-enabled/%1$s.%2$s', $this->_folder_name, $this->domain_base );
         if( ! symlink( $conf_file_original, $conf_file_link ) )
         {
             $io->error( 'Could not create nginx symlink' );

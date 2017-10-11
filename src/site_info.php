@@ -24,6 +24,8 @@ class site_info
 
     private $_database_name;
 
+    private $_domain_base;
+
     public function show_summary( SymfonyStyle $io )
     {
         $io->table(
@@ -34,6 +36,7 @@ class site_info
                         'CMS Type',
                         'Stage Type',
                         'Subdomain',
+                        'Domain Base',
                         'Database Name',
                         'Folder Name',
                     ],
@@ -45,6 +48,7 @@ class site_info
                             $this->get_cms_type(),
                             $this->get_stage_type(),
                             $this->get_sub_domain(),
+                            $this->get_domain_base(),
                             $this->get_database_name(),
                             $this->get_top_level_folder_name(),
                         ]
@@ -65,6 +69,11 @@ class site_info
         ];
 
         $io->listing( $directories );
+    }
+
+    public function get_domain_base() : ?string
+    {
+        return $this->_domain_base;
     }
 
     public function get_client_name() : ?string
@@ -100,6 +109,11 @@ class site_info
     public function get_cms_type() : ?string
     {
         return $this->_cms_type;
+    }
+
+    public function set_domain_base( string $domain_base )
+    {
+        $this->_domain_base = $domain_base;
     }
 
     public function set_database_name( string $database_name )
@@ -229,7 +243,18 @@ class site_info
             $parts[] = $this->get_site_year();
         }
 
-        return implode( '_', $parts );
+        return self::letters_numbers_underscore_only( implode( '_', $parts ) );
+    }
+
+    public function generate_subdomain() : string
+    {
+        $parts = explode( ' ', strtolower( $this->get_client_name() ) );
+
+        $host = implode( '-', $parts );
+
+        $host = preg_replace( '/[^a-zA-Z0-9\-_]+/', '', $host );
+
+        return $host;
     }
 
     public function get_top_level_folder_name() : string
@@ -243,7 +268,7 @@ class site_info
             $parts[] = $this->get_site_year();
         }
 
-        return implode( '-', $parts );
+        return self::letters_numbers_dashes_only( implode( '-', $parts ) );
     }
 
     public static function letters_numbers_underscore_only( string $text ) : string
