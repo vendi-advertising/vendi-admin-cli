@@ -3,14 +3,15 @@
     "description": "Vendi Admin CLI",
     "license": "MIT",
     "require": {
-        "symfony/console": "^3.0",
+        "symfony/console": "3.2",
         "symfony/yaml": "^3.3",
         "webmozart/path-util": "^2.3",
         "symfony/config": "^3.3",
         "vendi-advertising/vendi-shared-utils": "^4.0",
         "symfony/polyfill-iconv": "^1.4",
         "padraic/phar-updater": "^1.0",
-        "symfony/finder": "^3.3"
+        "symfony/finder": "^3.3",
+        "naneau/semver": "^0.0.7"
     },
     "require-dev": {
         "symfony/var-dumper": "^3.3",
