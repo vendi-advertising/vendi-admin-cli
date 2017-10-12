@@ -21,11 +21,8 @@ class _base_with_fs extends _base
 
         $this
             ->addArgument( 'top-level-folder-name', InputArgument::REQUIRED, 'The sanitized client/project folder name.' )
-        ;
-
-        $this
-            ->addOption( 'stage-type',          null, InputOption::VALUE_REQUIRED,  'The stage type.', 'stage' )
-            ->addOption( 'file-system-root',    null, InputOption::VALUE_REQUIRED,  'The absolute path to the root of the web filesystem.', '/var/www' )
+            ->addArgument( 'stage-type',            InputArgument::REQUIRED, 'The stage type.' )
+            ->addArgument( 'file-system-root',      InputArgument::REQUIRED, 'The absolute path to the root of the web filesystem.' )
         ;
     }
 
@@ -33,8 +30,8 @@ class _base_with_fs extends _base
     {
         parent::initialize( $input, $output );
 
-        $this->_stage_type         = $input->getOption( 'stage-type' );
-        $this->_file_system_root   = $input->getOption( 'file-system-root' );
+        $this->_stage_type         = $input->getArgument( 'stage-type' );
+        $this->_file_system_root   = $input->getArgument( 'file-system-root' );
         $this->_folder_name        = $input->getArgument( 'top-level-folder-name' );
 
         if( ! is_dir( $this->_file_system_root ) )

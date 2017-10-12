@@ -2,6 +2,8 @@
 
 namespace Vendi\CLI\Commands;
 
+use Naneau\SemVer\Parser;
+use Naneau\SemVer\Compare;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -184,6 +186,43 @@ class create_site_wizard extends Command
         $this->_site_info->set_database_name( $db_stuff );
     }
 
+    private function is_wp_version_valid()
+    {
+        $result = exec( 'wp --version --allow-root' );
+
+        $to_remove = 'WP-CLI';
+
+        if( 0 === strpos( $result, $to_remove ) )
+        {
+            $result = substr( $result, strlen( $to_remove ) );
+        }
+
+        $parts = explode( '-', $result );
+        switch( count( $parts ) )
+        {
+            case 1:
+            case 2:
+                $result = implode( '-', $parts );
+                break;
+
+            default:
+                $first  = $parts[ 0 ];
+                $second = $parts[ 1 ];
+                $third  = 'build.' . $parts[ 2 ];
+                $result = "$first-$second+$third";
+        }
+
+        $version = Parser::parse( trim( $result ) );
+
+        //A glitch in certain PHP distros requires at least version 1.4.0 or greater
+        if( Compare::greaterThan( $version, Parser::parse( '1.3.0' ) ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
@@ -222,11 +261,11 @@ class create_site_wizard extends Command
             exit;
         }
 
-        // if( ! $io->confirm( 'Are you ready to start?', true ) )
-        // {
-        //     $io->success( 'Okay, well I did\'t do anything but I hope you come back!' );
-        //     exit;
-        // }
+        if( ! $this->is_wp_version_valid() )
+        {
+            $io->error( 'Please upgrade your WP-CLI before continuing. If you are on the latest then you might need to upgrade using: sudo wp cli update --nightly' );
+            exit;
+        }
 
         $wizard_ok = false;
 
@@ -257,9 +296,9 @@ class create_site_wizard extends Command
                             'arguments' => [
                                     'command'               => 'create-file-system',
                                     'top-level-folder-name' => $this->_site_info->get_top_level_folder_name(),
-                                    '--stage-type'          => $this->_site_info->get_stage_type(),
-                                    '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
-                                    '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
+                                    'cms-type'              => $this->_site_info->get_cms_type(),
+                                    'stage-type'            => $this->_site_info->get_stage_type(),
+                                    'file-system-root'      => '/var/www/',
                             ],
                             'default'   => true,
                         ],
@@ -269,8 +308,7 @@ class create_site_wizard extends Command
                             'arguments' => [
                                     'command'               => 'create-database',
                                     'database-name'         => $this->_site_info->get_database_name(),
-                                    '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
-                                    '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
+                                    'cms-type'              => $this->_site_info->get_cms_type(),
                             ],
                             'default'   => true,
                         ],
@@ -280,9 +318,9 @@ class create_site_wizard extends Command
                             'arguments' => [
                                     'command'               => 'download-cms',
                                     'top-level-folder-name' => $this->_site_info->get_top_level_folder_name(),
-                                    '--stage-type'          => $this->_site_info->get_stage_type(),
-                                    '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
-                                    '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
+                                    'cms-type'              => $this->_site_info->get_cms_type(),
+                                    'stage-type'            => $this->_site_info->get_stage_type(),
+                                    'file-system-root'      => '/var/www/',
                             ],
                             'default'   => true,
                         ],
@@ -294,9 +332,9 @@ class create_site_wizard extends Command
                                     'top-level-folder-name' => $this->_site_info->get_top_level_folder_name(),
                                     'subdomain'             => $this->_site_info->get_sub_domain(),
                                     'domain-base'           => $this->_site_info->get_domain_base(),
-                                    '--stage-type'          => $this->_site_info->get_stage_type(),
-                                    '--cms-type-wordpress'  => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_WORDPRESS,
-                                    '--cms-type-drupal'     => $this->_site_info->get_cms_type() === site_info::CMS_TYPE_DRUPAL,
+                                    'cms-type'              => $this->_site_info->get_cms_type(),
+                                    'stage-type'            => $this->_site_info->get_stage_type(),
+                                    'file-system-root'      => '/var/www/',
                             ],
                             'default'   => true,
                         ],
@@ -306,11 +344,10 @@ class create_site_wizard extends Command
         {
             if( $io->confirm( $parts[ 'message' ], $parts[ 'default' ] ) )
             {
-
                 $returnCode = $this
                                 ->getApplication()
                                 ->find( $name )
-                                ->run( new ArrayInput( $parts[ 'arguments' ] ), $output)
+                                ->run( new ArrayInput( $parts[ 'arguments' ] ), $output )
                             ;
             }
             else
