@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 
 define( 'APP_DIR',   './releases/' );
