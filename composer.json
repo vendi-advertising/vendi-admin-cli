@@ -9,11 +9,11 @@
         "symfony/config": "^3.3",
         "vendi-advertising/vendi-shared-utils": "^4.0",
         "symfony/polyfill-iconv": "^1.4",
-        "padraic/phar-updater": "^1.0"
+        "padraic/phar-updater": "^1.0",
+        "symfony/finder": "^3.3"
     },
     "require-dev": {
         "symfony/var-dumper": "^3.3",
-        "symfony/finder": "^3.3",
         "sensiolabs/security-checker": "^4.1",
         "jakub-onderka/php-parallel-lint": "^0.9.2",
         "jakub-onderka/php-console-highlighter": "^0.3.2",
