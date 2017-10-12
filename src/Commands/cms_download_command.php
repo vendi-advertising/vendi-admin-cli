@@ -35,7 +35,7 @@ class cms_download_command extends _base_with_fs
             );
 
             $result = exec( $command );
-            dump( $result );
+            echo $result;
 
             // Identify directories
             $source = sprintf(
@@ -85,7 +85,7 @@ class cms_download_command extends _base_with_fs
             );
 
             $result = exec( $command );
-            dump( $result );
+            echo $result;
         }
 
         $io->success( 'I think that worked, not 100% sure. Maybe check that.' );
