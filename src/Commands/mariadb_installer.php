@@ -25,6 +25,7 @@ class mariadb_installer extends _bash_installer_base
         $this
             ->setName( 'install-mariadb' )
             ->setDescription( 'Install MariaDB' )
+            ->setHidden( true )
         ;
     }
 

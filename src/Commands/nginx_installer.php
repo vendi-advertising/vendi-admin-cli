@@ -25,6 +25,7 @@ class nginx_installer extends _bash_installer_base
         $this
             ->setName( 'install-nginx' )
             ->setDescription( 'Install Nginx' )
+            ->setHidden( true )
         ;
     }
 

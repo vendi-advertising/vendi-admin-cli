@@ -17,6 +17,7 @@ class libsodium_installer extends _bash_installer_with_php_base
         $this
             ->setName( 'install-libsodium' )
             ->setDescription( 'Install PHP Redis' )
+            ->setHidden( true )
         ;
     }
 

@@ -25,6 +25,7 @@ class redis_installer extends _bash_installer_base
         $this
             ->setName( 'install-redis' )
             ->setDescription( 'Install Redis' )
+            ->setHidden( true )
         ;
     }
 

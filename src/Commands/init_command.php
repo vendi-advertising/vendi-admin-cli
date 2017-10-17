@@ -29,6 +29,7 @@ class init_command extends Command
         $this
             ->setName( 'init' )
             ->setDescription( 'Initialize settings for this server' )
+            ->setHidden( true )
         ;
 
         // $this
@@ -82,19 +83,5 @@ class init_command extends Command
         $text = sprintf( 'The Sentry.IO web hook URL is %1$s set, would you like to change it?', array_key_exists( 'web_hook_url', $processor ) ? 'already' : 'no' );
 
         $result = $io->confirm( $text, array_key_exists( 'web_hook_url', $processor ) );
-
-        // $key = $io->ask( 'What is the key?' );
-
-        // $new_config = [
-        //                 'web_hook_url' => $key,
-        //                 'cheese' => 'sdasdas',
-        //         ];
-
-        // file_put_contents( $config_paths[ config_info::CONFIG_KEY_USER ], Yaml::dump( $new_config ) );
-
-        // dump( $new_config );
-        // dump( $config_paths );
-        dump( $processedConfiguration );
-        // dump( $configuration );
     }
 }

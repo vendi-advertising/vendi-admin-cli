@@ -13,6 +13,7 @@ class php_installer extends _bash_installer_with_php_base
         $this
             ->setName( 'install-php' )
             ->setDescription( 'Install PHP' )
+            ->setHidden( true )
         ;
     }
 

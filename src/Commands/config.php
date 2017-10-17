@@ -26,6 +26,7 @@ class config extends Command
         $this
             ->setName( 'init' )
             ->setDescription( 'Initialize settings for this server' )
+            ->setHidden( true )
         ;
 
         // $this
@@ -56,7 +57,5 @@ class config extends Command
         }
 
         $config_paths = ( new config_info )->get_config_paths();
-
-        dump( $config_paths );
     }
 }

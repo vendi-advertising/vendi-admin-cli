@@ -24,6 +24,7 @@ class self_update extends Command
         $this
             ->setName( 'self-update' )
             ->setDescription( 'Self update' )
+            ->setHidden( true )
         ;
     }
 
@@ -71,7 +72,6 @@ class self_update extends Command
         }
         catch( \Exception $e )
         {
-            dump( $e );
             echo "Well, something happened! Either an oopsie or something involving hackers.\n";
             exit(1);
         }
