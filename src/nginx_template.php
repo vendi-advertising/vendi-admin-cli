@@ -4,26 +4,25 @@ namespace Vendi\CLI;
 
 final class nginx_template
 {
-    public static function get_template_basic( $subdomain, $folder, $stage_type, $cms_type, $domain_base ) : string
+    public static function get_template_basic($subdomain, $folder, $stage_type, $cms_type, $domain_base): string
     {
         $extra = '';
         $cms_folder = '';
 
-        switch( $cms_type )
-        {
+        switch ($cms_type) {
             case site_info::CMS_TYPE_WORDPRESS:
-                $extra      = 'include global/all-in-one/wordpress-secure-block.conf;';
+                $extra = 'include global/all-in-one/wordpress-secure-block.conf;';
                 $cms_folder = 'wp-site';
                 break;
 
             case site_info::CMS_TYPE_DRUPAL:
-                $extra      = 'include global/drupal/drupal.conf;';
+                $extra = 'include global/drupal/drupal.conf;';
                 $cms_folder = 'drupal-site';
                 break;
         }
 
         return sprintf(
-                        '
+            '
 server {
         listen 80;
         server_name %1$s.%6$s;

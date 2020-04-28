@@ -95,7 +95,7 @@ class libsodium_installer extends _bash_installer_with_php_base
             $local_folder_sub = Path::join( $local_folder, "libsodium-${expected_version}" );
 
             $this->set_next_command_timeout( 60 * 5 );
-            $this->_run_mulitple_commands_with_working_directory(
+            $this->_run_multiple_commands_with_working_directory(
                                                                     [
                                                                         './configure',
                                                                         'make',

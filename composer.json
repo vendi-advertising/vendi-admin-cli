@@ -3,21 +3,21 @@
     "description": "Vendi Admin CLI",
     "license": "MIT",
     "require": {
-        "symfony/console": "3.2",
-        "symfony/yaml": "^3.3",
-        "webmozart/path-util": "^2.3",
+        "php": "7.4",
         "symfony/config": "^3.3",
-        "vendi-advertising/vendi-shared-utils": "^4.0",
-        "symfony/polyfill-iconv": "^1.4",
-        "padraic/phar-updater": "^1.0",
+        "symfony/console": "3.2|4|5",
         "symfony/finder": "^3.3",
+        "symfony/polyfill-iconv": "^1.4",
+        "symfony/yaml": "^3.3|4|5",
+        "webmozart/path-util": "^2.3",
+        "vendi-advertising/vendi-shared-utils": "^4.0",
+        "padraic/phar-updater": "^1.0",
         "naneau/semver": "^0.0.7"
     },
     "require-dev": {
-        "symfony/var-dumper": "^3.3",
-        "sensiolabs/security-checker": "^4.1",
+        "symfony/var-dumper": "^3.3|4|5",
+        "sensiolabs/security-checker": "^4.1|5|6",
         "jakub-onderka/php-parallel-lint": "^0.9.2",
-        "jakub-onderka/php-console-highlighter": "^0.3.2",
-        "phpro/grumphp": "^0.12.0"
+        "jakub-onderka/php-console-highlighter": "^0.3.2"
     }
 }

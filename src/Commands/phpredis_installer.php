@@ -71,7 +71,7 @@ class phpredis_installer extends _bash_installer_with_php_base
             $this->install_package( "php${expected_php_version}-dev git" );
             $this->clone_git_repo( $local_folder, 'https://github.com/phpredis/phpredis.git' );
 
-            $this->_run_mulitple_commands_with_working_directory(
+            $this->_run_multiple_commands_with_working_directory(
                                                                     [
                                                                         'git checkout php7',
                                                                         'phpize',
